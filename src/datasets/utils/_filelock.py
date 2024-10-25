@@ -39,7 +39,11 @@ class FileLock(FileLock_):
             os.umask(umask)
             kwargs["mode"] = 0o666 & ~umask
         lock_file = self.hash_filename_if_too_long(lock_file)
-        super().__init__(lock_file, *args, **kwargs)
+        
+        # create the lock file in the tmp directory
+        tmp_lock_file = os.getenv("DATASETS_LOCKPATH_PREFIX", "/tmp") + lock_file
+        os.makedirs(os.path.dirname(tmp_lock_file), exist_ok=True)
+        super().__init__(tmp_lock_file, *args, **kwargs)
 
     @classmethod
     def hash_filename_if_too_long(cls, path: str) -> str:
